@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <div id="dataTable" ></div>
+    </div>
+    
+
+    <script>
+
+        const dataTable = document.getElementById('dataTable')
+
+        const token = localStorage.getItem('accessToken')
+
+
+        const deleteProduct = async(id) =>{
+            const response = await fetch(`http://127.0.0.1:8000/api/product-delete/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            const data = await response.json()
+            console.log(data)
+            if(data.status == 'success'){
+                alert('Product deleted')
+                window.location.href = 'index.html'
+            }
+            else{
+                alert('Failed to delete product')
+            }
+        }
+
+        const requestApi = async () => {
+            let respone = await fetch('http://127.0.0.1:8000/api/product/', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            let products = await respone.json()
+
+            for (let i = 0; products.length > i; i++){
+                let product = products[i]
+                let output = `
+                   
+                        <table>
+                            <tr>
+                                <th>ID</th>
+                                <th>Car Name</th>
+                                <th>Model</th>
+                                <th>Color</th>
+                                <th>Delete</th>
+                            </tr>
+                            <tr>
+                                <td>${product.id}</td>
+                                <td>${product.name}</td>
+                                <td>${product.bus_model}</td>
+                                <td>${product.color}</td>
+                                <td><button style = "margin: 0px;" onclick="deleteProduct(${product.id})">Delete</button></td>
+                            </tr>
+                            </table>
+                        
+                `
+
+                dataTable.innerHTML += output
+            }
+        }
+        requestApi()
+    </script>
+</body>
+</html>
