@@ -5,15 +5,29 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Document</title>
+    <title>Home Page</title>
 </head>
 <body>
     <div class="container">
-        <div id="dataTable" >
+        <table id="myTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)" style="cursor: pointer;">ID</th>
+                    <th onclick="sortTable(1)" style="cursor: pointer;">Car Name</th>
+                    <th >Model</th>
+                    <th>Color</th>
+                  
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable">
+            </tbody>
+        </table>
 
-        </div>
+        <button onclick="logout">Logout</button>
     </div>
-    
+
+
 
     <script>
 
@@ -21,7 +35,41 @@
 
         const token = localStorage.getItem('accessToken')
 
+        // fetch the products
+        
+        const requestApi = async () => {
+            let respone = await fetch('http://127.0.0.1:8000/api/product/', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            let products = await respone.json()
+            
+            for (let i = 0; products.length > i; i++){
+                let product = products[i]
+                 let output = `
+                            <tr>
+                                <td >${product.id}</td>
+                                <td id = "name${product.id}">${product.name}</td>
+                                <td id = "model${product.id}">${product.bus_model}</td>
+                                <td id = "color${product.id}">${product.color}</td>
+                                
+                                <td>
+                                    <button style = "margin: 0px; width:50%; padding: 10px 10px;" onclick="deleteProduct(${product.id})">Delete</button>
+                                  
+                                </td>
+                            </tr>
+                `
+                dataTable.innerHTML += output
+            }
+            
+        }
+        requestApi()
 
+
+
+        // Delete Products 
+        
         const deleteProduct = async(id) =>{
             const response = await fetch(`http://127.0.0.1:8000/api/product-delete/${id}`, {
                 method: 'DELETE',
@@ -41,38 +89,85 @@
             }
         }
 
-        const requestApi = async () => {
-            let respone = await fetch('http://127.0.0.1:8000/api/product/', {
+
+
+    // logout function
+
+        const logout = async() =>{
+            const response = await fetch('http://127.0.0.1:8000/api/logout/', {
+                method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             })
-            let products = await respone.json()
-            dataTable.innerHTML = `<table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Car Name</th>
-                                <th>Model</th>
-                                <th>Color</th>
-                                <th>Delete</th>
-                            </tr> </thead>`
-            for (let i = 0; products.length > i; i++){
-                let product = products[i]
-                 let output = `
-                            <tr>
-                                <td>${product.id}</td>
-                                <td>${product.name}</td>
-                                <td>${product.bus_model}</td>
-                                <td>${product.color}</td>
-                                <td><button style = "margin: 0px" onclick="deleteProduct(${product.id})">Delete</button></td>
-                            </tr>
-                `
-                dataTable.innerHTML += output
+            const data = await response.json()  
+            if(data.status == 'success'){
+                localStorage.removeItem('accessToken')
+                window.location.href = 'signin.html'
             }
-            dataTable.innerHTML += ` </table>`
+           
         }
-        requestApi()
+
+
+
+
+// code for sorting table
+
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("myTable");
+  switching = true;
+  //Set the sorting direction to ascending:
+  dir = "asc"; 
+  /*Make a loop that will continue until
+  no switching has been done:*/
+  while (switching) {
+    //start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /*Loop through all table rows (except the
+    first, which contains table headers):*/
+    for (i = 1; i < (rows.length - 1); i++) {
+      //start by saying there should be no switching:
+      shouldSwitch = false;
+      /*Get the two elements you want to compare,
+      one from current row and one from the next:*/
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /*check if the two rows should switch place,
+      based on the direction, asc or desc:*/
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch= true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /*If a switch has been marked, make the switch
+      and mark that a switch has been done:*/
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      //Each time a switch is done, increase this count by 1:
+      switchcount ++;      
+    } else {
+      /*If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again.*/
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
     </script>
 </body>
 </html>
